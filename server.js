@@ -33,9 +33,12 @@ const generateId = () => crypto.randomBytes(8).toString('hex');
 
 // Authentication
 app.post('/api/auth/login', async (req, res) => {
-  const { phone, name, action } = req.body;
+  const { phone, name, action, password } = req.body;
   if (!phone) {
     return res.status(400).json({ error: 'Phone number is required' });
+  }
+  if (!password) {
+    return res.status(400).json({ error: 'Password is required' });
   }
   
   try {
@@ -44,19 +47,25 @@ app.post('/api/auth/login', async (req, res) => {
       if (!user) {
         return res.status(404).json({ error: 'Account not found. Please register / create an account first.' });
       }
+      
+      const inputHashed = db.hashPassword(password);
+      if (user.password && user.password !== inputHashed) {
+        return res.status(401).json({ error: 'Invalid phone number or password. Please try again.' });
+      }
+      
       res.json(user);
     } else if (action === 'register') {
       if (user) {
         return res.status(400).json({ error: 'This phone number is already registered. Please log in instead.' });
       }
       const id = generateId();
-      user = await db.createUser(id, name || `Player_${phone.slice(-4)}`, phone);
+      user = await db.createUser(id, name || `Player_${phone.slice(-4)}`, phone, password);
       res.json(user);
     } else {
       // Legacy find-or-create fallback
       if (!user) {
         const id = generateId();
-        user = await db.createUser(id, name || `Player_${phone.slice(-4)}`, phone);
+        user = await db.createUser(id, name || `Player_${phone.slice(-4)}`, phone, password);
       }
       res.json(user);
     }

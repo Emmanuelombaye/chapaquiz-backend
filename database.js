@@ -1,6 +1,12 @@
 const { createClient } = require('@supabase/supabase-js');
 const dotenv = require('dotenv');
 const path = require('path');
+const crypto = require('crypto');
+
+function hashPassword(password) {
+  if (!password) return '';
+  return crypto.createHash('sha256').update(password).digest('hex');
+}
 
 dotenv.config();
 
@@ -87,11 +93,13 @@ async function getUserByPhone(phone) {
   return data;
 }
 
-async function createUser(id, name, phone) {
+async function createUser(id, name, phone, password) {
+  const hashedPassword = hashPassword(password);
   const { data, error } = await supabase.from('users').insert({
     id,
     name,
     phone,
+    password: hashedPassword,
     wallet_balance: 0.0
   }).select().single();
   if (error) throw error;
@@ -536,5 +544,6 @@ module.exports = {
   createQuestion,
   updateQuestion,
   deleteQuestion,
-  adminLoginCheck
+  adminLoginCheck,
+  hashPassword
 };
