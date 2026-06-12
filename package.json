@@ -4,7 +4,8 @@
   "description": "ChapaQuiz Real-time Game Server",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "build": "echo 'No build step required'"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.108.1",
